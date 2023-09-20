@@ -1,0 +1,137 @@
+﻿@page "/Weather"
+
+@using System.Threading.Tasks
+@using System.Net.Http
+@using System.Net.Http.Json
+
+<style>
+    /* CSS for the banner */
+    .banner {
+        background-color: #facd02; /* Blue background color */
+        color: #000000; /* White text color */
+        padding: 20px; /* Add some padding for spacing */
+        text-align: center; /* Center-align the text */
+        font-size: 24px; /* Font size of the text */
+        font-weight: bold; /* Make the text bold */
+        font-family: 'Georgia', serif; /* Changing the font */
+    }
+
+    .table {
+        font-family: 'Georgia', serif; /* Changing the font */
+    }
+
+    /* CSS for the container */
+    .content-container {
+        display: inline-block;
+        max-width: 400px; /* Set a maximum width for the container */
+        margin: 0 auto; /* Center the container horizontally */
+        padding: 15px; /* Add some padding for spacing */
+        border: 1px solid #ccc; /* Add a border for visual separation */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+    }
+
+    /* CSS for the title */
+    .content-title {
+        font-size: 30px; /* Font size for the title */
+        font-family: 'Georgia', serif; /* Changing the font */
+    }
+
+    /* CSS for the text */
+    .content-text {
+        font-size: 18px; /* Font size for the text */
+        font-family: 'Georgia', serif; /* Changing the font */
+    }
+
+    /* CSS for the text */
+    .content-temp {
+        font-size: 12px; /* Font size for the text */
+        font-family: 'Georgia', serif; /* Changing the font */
+    }
+
+</style>
+
+<div class="banner">
+    <h3>hoe is het weer op het kantoor van EY Amsterdam</h3>
+</div>
+
+
+@if (weatherInfo != null)
+{
+    // little table for the info of to day
+    <h2 class="content-title">Vandaag:</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Locatie</th>
+                <th>Temp. (C)</th>
+                <th>Wind sterkte</th>
+                <th>Lucht Druk</th>
+                <th>Samenvatting</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@weatherInfo[0].Time</td>
+                <td>@weatherInfo[0].Plaats</td>
+                <td>@weatherInfo[0].Temp</td>
+                <td>@weatherInfo[0].Winds</td>
+                <td>@weatherInfo[0].luchtd</td>
+                <td>@weatherInfo[0].Samenv</td>
+            </tr>
+        </tbody>
+    </table>
+
+    // div block for the tomorrow info
+    <div class="content-container">
+        <h2 class="content-title">Morgen:</h2>
+        <p class="content-temp">Min Temp: @weatherInfo[0].D1tmin</p>
+        <p class="content-temp">Max Temp: @weatherInfo[0].D1tmax</p>
+        <p class="content-text">Verwachting: @weatherInfo[0].Verw</p>
+    </div>
+
+    // div block for the day after tomorrow info
+    <div class="content-container">
+        <h2 class="content-title">Overmorgen:</h2>
+        <p class="content-temp">Min Temp: @weatherInfo[0].D2tmin</p>
+        <p class="content-temp">Max Temp: @weatherInfo[0].D2tmax</p>
+        <p class="content-text">Verwachting: @weatherInfo[0].Verw</p>
+    </div>
+}
+else
+{
+    <p>Kan geen weerdata ophalen.</p>
+}
+
+@code {
+    private List<WeatherInfo> weatherInfo;
+    private HttpClient httpClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = new HttpClient();
+        // Voeg de API-URL toe aan de base URL
+        httpClient.BaseAddress = new Uri("https://weerlive.nl/api/json-data-10min.php?key=demo&locatie=Amsterdam");
+
+        try
+        {
+            // Stuur een GET-verzoek naar de API en deserialiseer de JSON-gegevens
+            var response = await httpClient.GetFromJsonAsync<WeatherData>("");
+
+            if (response != null && response.Liveweer != null)
+            {
+                weatherInfo = response.Liveweer;
+            }
+            else
+            {
+                // Handel fouten af indien nodig
+                weatherInfo = new List<WeatherInfo>();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handel uitzonderingen af indien nodig
+            weatherInfo = new List<WeatherInfo>();
+        }
+    }
+}
